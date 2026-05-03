@@ -10,12 +10,22 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // --- GOOGLE SHEETS SETUP ---
-const auth = new google.auth.GoogleAuth({
-    keyFile: 'credentials.json',
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
+let auth;
 
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // Replace with your Sheet ID
+if (process.env.GOOGLE_CREDENTIALS) {
+    // 1. If on Render, parse the Environment Variable you just created
+    auth = new google.auth.GoogleAuth({
+        credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+} else {
+    // 2. If on your local laptop, use the physical file
+    auth = new google.auth.GoogleAuth({
+        keyFile: 'credentials.json',
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+}
+const SPREADSHEET_ID = '1hQFMGiD7VCO1bEeJzZSPDSMnJqeYWhVAii2D-LS5stk'; // Replace with your Sheet ID
 
 // --- EXACT SCORING KEY FROM YOUR IMAGE ---
 // This maps { QuestionNumber: { UserAnswer: 'DISC_Trait' } }
