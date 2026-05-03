@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Container, Typography, TextField, Button, Paper, Box, Alert, Grid,
-  ThemeProvider, createTheme, CssBaseline, LinearProgress, Fade
+  ThemeProvider, createTheme, CssBaseline, LinearProgress, Fade, CircularProgress
 } from '@mui/material';
 
 // --- PREMIUM CARNELIAN THEME ---
@@ -47,6 +47,12 @@ const theme = createTheme({
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: '0 6px 20px rgba(183, 28, 28, 0.3)',
+          },
+          '&.Mui-disabled': {
+            backgroundColor: '#e2e8f0',
+            color: '#94a3b8',
+            boxShadow: 'none',
+            transform: 'none'
           }
         }
       }
@@ -88,6 +94,7 @@ function App() {
   const [answers, setAnswers] = useState({});
   const [error, setError] = useState('');
   const [show, setShow] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false); // <-- Added loading state
 
   const changeStep = (newStep) => {
     setShow(false);
@@ -130,12 +137,18 @@ function App() {
       setError('Please answer all 24 questions before submitting.');
       return;
     }
+    
+    setIsSubmitting(true); // <-- Start loading spinner
+    setError('');
+
     try {
+      // Uses Render URL if deployed, otherwise localhost
       const apiUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
       await axios.post(`${apiUrl}/api/submit`, { userInfo, answers });
       changeStep(2);
     } catch (err) {
-      setError('Failed to submit. Please ensure backend is running.');
+      setError('Failed to submit. Please check your connection and try again.');
+      setIsSubmitting(false); // <-- Stop loading if there's an error
     }
   };
 
@@ -145,7 +158,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-      {/* STICKY HEADER — shows "DISC Assessment" text instead of logo */}
+      {/* STICKY HEADER */}
       {step === 1 && (
         <Box sx={{
           position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 9999,
@@ -160,7 +173,6 @@ function App() {
             sx={{ height: 6, backgroundColor: '#f1f5f9', '& .MuiLinearProgress-bar': { backgroundColor: '#f57c00' } }}
           />
           <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1.5 }}>
-            {/* ✅ FIX: Show "DISC Assessment" text instead of broken logo image */}
             <Typography variant="subtitle1" fontWeight={800} sx={{ color: '#b71c1c', letterSpacing: '-0.01em' }}>
               DISC Assessment
             </Typography>
@@ -230,17 +242,17 @@ function App() {
                 {error && <Alert severity="error" sx={{ mb: 4, borderRadius: '12px' }}>{error}</Alert>}
 
                 {questions.map((q) => (
-                  <Box key={q.id} sx={{ mb: 4 }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1.5, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                  <Box key={q.id} sx={{ mb: 5 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
                       Question {q.id}
                     </Typography>
 
-                    {/* ✅ FIX: All 4 options always in one row using xs={3} */}
-                    <Grid container spacing={2} wrap="nowrap">
+                    {/* CHANGED: Options now stack vertically (xs={12}) */}
+                    <Grid container spacing={2}>
                       {['A', 'B', 'C', 'D'].map((optionKey) => {
                         const isSelected = answers[q.id] === optionKey;
                         return (
-                          <Grid item xs={3} key={optionKey}>
+                          <Grid item xs={12} key={optionKey}>
                             <Box
                               onClick={() => handleAnswerChange(q.id, optionKey)}
                               sx={{
@@ -251,14 +263,13 @@ function App() {
                                 backgroundColor: isSelected ? '#fff5f5' : '#ffffff',
                                 color: isSelected ? '#b71c1c' : '#475569',
                                 borderRadius: '16px',
-                                py: 2.5,
-                                px: 1,
+                                py: 2,
+                                px: 3,
                                 textAlign: 'center',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                                 fontWeight: isSelected ? 700 : 500,
-                                fontSize: { xs: '0.75rem', sm: '0.9rem', md: '1rem' },
-                                minHeight: '60px',
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
                                 '&:hover': {
                                   borderColor: isSelected ? '#b71c1c' : '#cbd5e1',
                                   transform: 'translateY(-2px)',
@@ -275,13 +286,23 @@ function App() {
                   </Box>
                 ))}
 
-                {/* ✅ FIX: Properly centered submit button */}
+                {/* CHANGED: Submit button now has loading state */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
                   <Button
-                    variant="contained" size="large" onClick={handleSubmit}
-                    sx={{ py: 1.8, px: 6, fontSize: '1.2rem', backgroundColor: '#b71c1c', '&:hover': { backgroundColor: '#9b0000' } }}
+                    variant="contained" 
+                    size="large" 
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    sx={{ 
+                      py: 1.8, 
+                      px: 6, 
+                      fontSize: '1.2rem', 
+                      backgroundColor: '#b71c1c', 
+                      minWidth: '250px',
+                      '&:hover': { backgroundColor: '#9b0000' } 
+                    }}
                   >
-                    Submit Assessment
+                    {isSubmitting ? <CircularProgress size={28} color="inherit" /> : 'Submit Assessment'}
                   </Button>
                 </Box>
               </Box>
