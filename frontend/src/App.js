@@ -232,7 +232,7 @@ function App() {
               <Box>
                 <Box sx={{ textAlign: 'center', mb: 6 }}>
                   <Typography variant="h4" sx={{ color: '#1e293b', mb: 1 }}>
-                    Select the word that fits you best.
+                    Select the word that fits you best right now.
                   </Typography>
                   <Typography variant="body1" color="textSecondary">
                     Trust your instincts. Don't overthink your choices.
