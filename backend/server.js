@@ -78,10 +78,15 @@ app.post('/api/submit', async (req, res) => {
         }
 
         // 3. Convert counts to Percentages
-        const percentD = ((counts.D / totalQuestions) * 100).toFixed(1) + '%';
-        const percentI = ((counts.I / totalQuestions) * 100).toFixed(1) + '%';
-        const percentS = ((counts.S / totalQuestions) * 100).toFixed(1) + '%';
-        const percentC = ((counts.C / totalQuestions) * 100).toFixed(1) + '%';
+        const rawD = parseFloat(((counts.D / totalQuestions) * 100).toFixed(1));
+const rawI = parseFloat(((counts.I / totalQuestions) * 100).toFixed(1));
+const rawS = parseFloat(((counts.S / totalQuestions) * 100).toFixed(1));
+const rawC = parseFloat((100 - rawD - rawI - rawS).toFixed(1));
+
+const percentD = rawD + '%';
+const percentI = rawI + '%';
+const percentS = rawS + '%';
+const percentC = rawC + '%';
 
         // 4. Stringify all answers into a single JSON string for the sheet
         const answersJSON = JSON.stringify(answers);
